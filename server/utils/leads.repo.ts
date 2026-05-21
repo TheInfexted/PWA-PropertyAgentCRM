@@ -81,7 +81,7 @@ export async function createLead(ctx: RequestContext, data: LeadInput) {
     area: data.area ?? '',
     remarks: data.remarks ?? '',
     statusId: data.statusId ?? null,
-    assignedTo: data.assignedTo ?? ctx.userId,
+    assignedTo: ctx.role === 'owner' ? (data.assignedTo ?? ctx.userId) : ctx.userId,
     email: data.email || null,
     intent: data.intent ?? null,
     propertyType: data.propertyType ?? null,
@@ -105,7 +105,7 @@ export async function updateLead(ctx: RequestContext, id: number, data: Partial<
   if (data.area !== undefined) patch.area = data.area
   if (data.remarks !== undefined) patch.remarks = data.remarks
   if (data.statusId !== undefined) patch.statusId = data.statusId
-  if (data.assignedTo !== undefined) patch.assignedTo = data.assignedTo
+  if (data.assignedTo !== undefined && ctx.role === 'owner') patch.assignedTo = data.assignedTo
   if (data.nextFollowUpAt !== undefined) patch.nextFollowUpAt = data.nextFollowUpAt ? new Date(data.nextFollowUpAt) : null
   if (data.email !== undefined) patch.email = data.email || null
   if (data.intent !== undefined) patch.intent = data.intent ?? null

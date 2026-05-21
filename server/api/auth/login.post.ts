@@ -9,7 +9,7 @@ const bodySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const db = useDb()!
+  const db = useDb()
   const { email, password } = bodySchema.parse(await readBody(event))
 
   const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)

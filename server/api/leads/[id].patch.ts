@@ -5,7 +5,12 @@ import { logActivity } from '~~/server/utils/activities.repo'
 export default defineEventHandler(async (event) => {
   const ctx = await requireContext(event)
   const id = Number(getRouterParam(event, 'id'))
+  if (!Number.isInteger(id) || id <= 0) throw createError({ statusCode: 400, message: 'Invalid id' })
   const data = leadPatchSchema.parse(await readBody(event))
+
+  if (ctx.role === 'agent' && data.assignedTo !== undefined) {
+    throw createError({ statusCode: 403, message: 'Agents cannot reassign leads' })
+  }
 
   const before = await getLead(ctx, id)
   if (!before) throw createError({ statusCode: 404, message: 'Lead not found' })

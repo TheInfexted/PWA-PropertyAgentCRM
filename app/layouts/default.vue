@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { session } = useUserSession()
+const { user } = useUserSession()
 async function logout() {
   await $fetch('/api/auth/logout', { method: 'POST' })
   await navigateTo('/login')
@@ -16,7 +16,7 @@ async function logout() {
     </aside>
     <div class="flex-1">
       <header class="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-3">
-        <div class="text-sm text-gray-500">{{ (session?.user as any)?.name }}</div>
+        <div class="text-sm text-gray-500">{{ (user as { name?: string } | null)?.name }}</div>
         <button class="text-sm text-gray-500 hover:text-gray-900" @click="logout">Log out</button>
       </header>
       <main class="p-6"><slot /></main>

@@ -13,7 +13,7 @@ const bodySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const db = useDb()!
+  const db = useDb()
   const rows = await db.select({ count: sql<number>`count(*)` }).from(users)
   const count = rows[0]?.count ?? 0
   if (Number(count) > 0) {

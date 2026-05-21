@@ -1,10 +1,11 @@
 declare module '#auth-utils' {
+  interface User {
+    id: number
+    email: string
+    name: string
+  }
   interface UserSession {
-    user: {
-      id: number
-      email: string
-      name: string
-    }
+    user: User
     workspaceId: number
     role: 'owner' | 'agent'
   }

@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm'
 import { users } from '~~/server/db/schema'
 
 export default defineEventHandler(async () => {
-  const db = useDb()!
+  const db = useDb()
   const rows = await db
     .select({ count: sql<number>`count(*)` })
     .from(users)
