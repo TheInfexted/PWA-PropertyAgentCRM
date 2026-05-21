@@ -1,11 +1,13 @@
 import { z } from 'zod'
 
-export const leadInputSchema = z.object({
-  name: z.string().trim().max(200).optional().default(''),
-  phone: z.string().trim().max(40).optional().default(''),
-  area: z.string().trim().max(120).optional().default(''),
+// Base field shape — no `.default()` so partial updates only touch provided
+// fields. The repository coalesces undefined values (`?? ''` / `?? [] / ?? null`).
+export const leadFields = z.object({
+  name: z.string().trim().max(200).optional(),
+  phone: z.string().trim().max(40).optional(),
+  area: z.string().trim().max(120).optional(),
   statusId: z.number().int().positive().nullable().optional(),
-  remarks: z.string().max(5000).optional().default(''),
+  remarks: z.string().max(5000).optional(),
   assignedTo: z.number().int().positive().nullable().optional(),
   email: z.union([z.string().trim().email(), z.literal('')]).optional(),
   intent: z.enum(['buy', 'rent', 'sell', 'invest']).optional(),
@@ -13,10 +15,17 @@ export const leadInputSchema = z.object({
   budgetMin: z.number().int().nonnegative().nullable().optional(),
   budgetMax: z.number().int().nonnegative().nullable().optional(),
   nextFollowUpAt: z.string().datetime().nullable().optional(),
-  tags: z.array(z.string().trim().max(40)).max(20).optional().default([]),
-}).refine(
+  tags: z.array(z.string().trim().max(40)).max(20).optional(),
+})
+
+// Create: requires at least a name or a phone.
+export const leadInputSchema = leadFields.refine(
   (d) => Boolean(d.name?.length) || Boolean(d.phone?.length),
   { message: 'A lead needs at least a name or a phone', path: ['name'] },
 )
 
+// Update: every field optional, no name-or-phone requirement, no defaults.
+export const leadPatchSchema = leadFields.partial()
+
 export type LeadInput = z.infer<typeof leadInputSchema>
+export type LeadPatch = z.infer<typeof leadPatchSchema>
