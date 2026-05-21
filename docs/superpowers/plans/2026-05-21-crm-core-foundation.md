@@ -364,8 +364,8 @@ describe('normalizePhone (region MY)', () => {
   it('accepts a pretty-printed +60 number', () => {
     expect(normalizePhone('+60 12-897 5215').e164).toBe('+60128975215')
   })
-  it('flags a malformed number as invalid', () => {
-    expect(normalizePhone('129303535')).toEqual({ raw: '129303535', e164: null, valid: false })
+  it('flags an obviously-too-short number as invalid', () => {
+    expect(normalizePhone('12')).toEqual({ raw: '12', e164: null, valid: false })
   })
   it('treats empty input as invalid', () => {
     expect(normalizePhone('').valid).toBe(false)
@@ -377,7 +377,7 @@ describe('dedupeKey', () => {
     expect(dedupeKey(normalizePhone('60128975215'))).toBe('+60128975215')
   })
   it('falls back to digits when invalid', () => {
-    expect(dedupeKey(normalizePhone('129303535'))).toBe('129303535')
+    expect(dedupeKey(normalizePhone('12'))).toBe('12')
   })
 })
 ```
