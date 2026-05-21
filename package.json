@@ -1,0 +1,42 @@
+{
+  "name": "property-crm",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx server/db/seed.ts"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "esbuild"
+    ]
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "libphonenumber-js": "^1.13.2",
+    "mysql2": "^3.22.3",
+    "nuxt": "^4.4.6",
+    "nuxt-auth-utils": "^0.5.29",
+    "vue": "^3.5.34",
+    "vue-router": "^5.0.7",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@nuxt/test-utils": "^4.0.3",
+    "@tailwindcss/vite": "^4.3.0",
+    "@vue/test-utils": "^2.4.10",
+    "drizzle-kit": "^0.31.10",
+    "happy-dom": "^20.9.0",
+    "tailwindcss": "^4.3.0",
+    "tsx": "^4.22.3",
+    "vitest": "^4.1.7"
+  }
+}
