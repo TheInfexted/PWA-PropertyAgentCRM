@@ -1,0 +1,20 @@
+# dependencies
+node_modules
+
+# nuxt / nitro build output
+.nuxt
+.output
+.data
+dist
+
+# env
+.env
+.env.*
+!.env.example
+
+# logs & os
+*.log
+.DS_Store
+
+# superpowers brainstorm scratch (mockups, server state)
+.superpowers/
