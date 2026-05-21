@@ -68,13 +68,15 @@ The product is built around a **Workspace**. Personal use is simply a workspace 
 |---|---|
 | Name | |
 | Phone | Stored normalized (`+60…`) plus the raw input; invalid numbers flagged |
-| Area | e.g. Petaling Jaya, Klang, KL |
+| Area | Free text with autocomplete suggestions from the workspace area list; messy values are gently standardized, never blocked |
 | Status | From the workspace's configurable status list (§4.2) |
 | Remarks | Free text |
 
+**Always available (not a default table column):** Next follow-up date. It is part of the core value (it powers the Due Today view and the "schedule callback" quick action), but it is set from the lead detail panel / a quick action rather than cluttering the five-column table. So the friend keeps their five columns while still never missing a callback.
+
 **Optional fields (off by default; toggled per workspace in Settings):**
 
-Email · Intent (buy/rent/sell/invest) · Property type · Budget (min–max) · Next follow-up date · Tags.
+Email · Intent (buy/rent/sell/invest) · Property type · Budget (min–max) · Tags.
 
 This keeps the friend's view at exactly five columns, while a pickier agency can switch on extras with no rebuild. It is also what keeps a future multi-company product path open without building it now.
 
@@ -141,8 +143,8 @@ Every lead query passes through a single scoping guard (§6.4). Nothing queries 
 - **workspace_members** — `id, workspace_id, user_id, role ENUM('owner','agent'), created_at`, unique `(workspace_id, user_id)`
 - **invites** — `id, workspace_id, email, role, token, expires_at, accepted_at, created_at`
 - **statuses** — `id, workspace_id, label, color, sort_order, created_at`
-- **leads** — `id, workspace_id, name, phone_e164, phone_raw, phone_valid, area, status_id, remarks, assigned_to, source ENUM(...), email, intent, property_type, budget_min, budget_max, next_follow_up_at, tags (JSON), created_by, created_at, updated_at`
-- **activities** — `id, workspace_id, lead_id, type ENUM(...), detail (JSON), actor_user_id, created_at`
+- **leads** — `id, workspace_id, name, phone_e164, phone_raw, phone_valid, area, status_id, remarks, assigned_to, source ENUM('manual','import','whatsapp','propertyguru','iproperty','facebook','referral','walkin') [Phase 1 only produces 'manual'/'import'], email, intent, property_type, budget_min, budget_max, next_follow_up_at, tags (JSON), created_by, created_at, updated_at`
+- **activities** — `id, workspace_id, lead_id, type ENUM('created','call','whatsapp','status_change','note','assigned','imported'), detail (JSON), actor_user_id, created_at`
 
 **Indexes:** leads `(workspace_id, status_id)`, `(workspace_id, assigned_to)`, `(workspace_id, next_follow_up_at)`, `(workspace_id, phone_e164)`; activities `(workspace_id, lead_id, created_at)`.
 
