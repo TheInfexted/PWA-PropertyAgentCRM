@@ -1,5 +1,6 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   const publicRoutes = ['/login', '/setup']
+  const isPublic = (path: string) => publicRoutes.includes(path) || path.startsWith('/invite/')
   const { loggedIn, fetch: fetchSession } = useUserSession()
   await fetchSession()
 
@@ -7,10 +8,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (needsSetup && to.path !== '/setup') return navigateTo('/setup')
   if (!needsSetup && to.path === '/setup') return navigateTo('/login')
 
-  if (!loggedIn.value && !publicRoutes.includes(to.path)) {
+  if (!loggedIn.value && !isPublic(to.path)) {
     return navigateTo('/login')
   }
-  if (loggedIn.value && publicRoutes.includes(to.path)) {
+  if (loggedIn.value && isPublic(to.path)) {
     return navigateTo('/')
   }
 })
