@@ -3,7 +3,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineNuxtConfig({
   compatibilityDate: '2025-05-01',
   devtools: { enabled: true },
-  modules: ['nuxt-auth-utils'],
+  modules: ['nuxt-auth-utils', '@vite-pwa/nuxt'],
   css: ['~/assets/css/main.css'],
   vite: { plugins: [tailwindcss()] },
   app: {
@@ -16,10 +16,11 @@ export default defineNuxtConfig({
           content:
             'A fast call-list CRM for property agents — track leads, call or WhatsApp in one tap, and never miss a follow-up.',
         },
-        { name: 'theme-color', content: '#0d121c' },
+        { name: 'theme-color', content: '#9e5733' },
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon-180x180.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
@@ -28,6 +29,51 @@ export default defineNuxtConfig({
         },
       ],
     },
+  },
+  pwa: {
+    registerType: 'autoUpdate',
+    manifest: {
+      name: 'Property CRM',
+      short_name: 'Property CRM',
+      description:
+        'A fast call-list CRM for property agents — track leads, call or WhatsApp in one tap, and never miss a follow-up.',
+      lang: 'en',
+      theme_color: '#9e5733',
+      background_color: '#faf8f4',
+      display: 'standalone',
+      orientation: 'portrait',
+      start_url: '/',
+      scope: '/',
+      icons: [
+        { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+        { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+        { src: '/maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      ],
+    },
+    workbox: {
+      // Precache the built app shell (JS/CSS/fonts/icons) for fast loads + installability.
+      // No navigateFallback: this is an SSR app, so navigations must reach the server when online.
+      globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2}'],
+      runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+          handler: 'StaleWhileRevalidate',
+          options: { cacheName: 'google-fonts-stylesheets' },
+        },
+        {
+          urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'google-fonts-webfonts',
+            expiration: { maxEntries: 20, maxAgeSeconds: 31536000 },
+            cacheableResponse: { statuses: [0, 200] },
+          },
+        },
+      ],
+    },
+    client: { installPrompt: true },
+    devOptions: { enabled: false },
   },
   runtimeConfig: {
     databaseUrl: process.env.DATABASE_URL,
