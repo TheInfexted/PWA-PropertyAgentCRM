@@ -22,8 +22,8 @@
   --color-line-strong: oklch(0.855 0.010 60);
 
   /* Single warm accent — terracotta / clay. Restrained: actions + state only. */
-  --color-accent: oklch(0.57 0.135 42);
-  --color-accent-strong: oklch(0.49 0.135 42);
+  --color-accent: oklch(0.505 0.135 42);
+  --color-accent-strong: oklch(0.43 0.135 42);
   --color-accent-soft: oklch(0.955 0.030 55);
 
   /* WhatsApp green — the one semantic exception we keep */
