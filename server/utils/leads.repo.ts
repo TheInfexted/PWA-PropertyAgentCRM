@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, like, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, isNotNull, like, or, sql } from 'drizzle-orm'
 import { leads, activities } from '~~/server/db/schema'
 import { leadVisibilityScope, type VisibilityContext } from '~~/shared/utils/visibility'
 import { normalizePhone } from '~~/shared/utils/phone'
@@ -134,6 +134,17 @@ export interface ImportLeadValues {
 }
 
 /** Bulk-insert imported leads + one 'imported' activity each. Returns count inserted. */
+/** Leads with a follow-up due today or overdue (visibility-scoped), oldest first. */
+export async function listDueFollowUps(ctx: RequestContext) {
+  const db = useDb()
+  const where = and(
+    whereFor(ctx, {}),
+    isNotNull(leads.nextFollowUpAt),
+    sql`date(${leads.nextFollowUpAt}) <= curdate()`,
+  )
+  return db.select().from(leads).where(where).orderBy(asc(leads.nextFollowUpAt)).limit(200)
+}
+
 export async function bulkCreateLeads(ctx: RequestContext, items: ImportLeadValues[]): Promise<number> {
   if (!items.length) return 0
   const db = useDb()
