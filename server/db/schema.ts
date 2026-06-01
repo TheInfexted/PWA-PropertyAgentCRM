@@ -65,6 +65,17 @@ export const leads = mysqlTable('leads', {
   idxWsPhone: index('idx_lead_ws_phone').on(t.workspaceId, t.phoneE164),
 }))
 
+export const invites = mysqlTable('invites', {
+  id: int('id').autoincrement().primaryKey(),
+  workspaceId: int('workspace_id').notNull(),
+  email: varchar('email', { length: 255 }).notNull(),
+  role: mysqlEnum('role', ['owner', 'agent']).notNull().default('agent'),
+  token: varchar('token', { length: 48 }).notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  acceptedAt: timestamp('accepted_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => ({ idxWsEmail: index('idx_invite_ws_email').on(t.workspaceId, t.email) }))
+
 export const activities = mysqlTable('activities', {
   id: int('id').autoincrement().primaryKey(),
   workspaceId: int('workspace_id').notNull(),
