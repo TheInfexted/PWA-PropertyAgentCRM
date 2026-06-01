@@ -8,6 +8,16 @@ const { data: lead, refresh } = useFetch(`/api/leads/${props.leadId}`, { lazy: t
 const { data: activities } = useFetch(`/api/leads/${props.leadId}/activities`, { lazy: true })
 const { update } = useLeads()
 
+const { session } = useUserSession()
+const isOwner = computed(() => (session.value as { role?: string } | null)?.role === 'owner')
+const { data: members } = useFetch('/api/members', { lazy: true, immediate: isOwner.value, default: () => [] })
+
+async function assign(userId: number) {
+  await update(props.leadId, { assignedTo: userId })
+  await refresh()
+  emit('changed')
+}
+
 const followUp = ref('')
 watch(lead, (l) => {
   followUp.value = isoToDateInput((l as { nextFollowUpAt?: string | null })?.nextFollowUpAt ?? null)
@@ -59,6 +69,17 @@ async function saveFollowUp(value: string | null) {
           @click="followUp = ''; saveFollowUp(null)"
         >Clear</button>
       </div>
+    </div>
+
+    <div v-if="isOwner && (members ?? []).length > 1" class="mt-4 rounded-lg border border-line bg-canvas/50 p-3">
+      <label class="mb-1.5 block text-xs font-medium uppercase tracking-wide text-faint">Assigned to</label>
+      <select
+        class="w-full rounded-md border border-line bg-surface px-3 py-1.5 text-sm"
+        :value="lead?.assignedTo ?? ''"
+        @change="assign(Number(($event.target as HTMLSelectElement).value))"
+      >
+        <option v-for="m in members ?? []" :key="m.userId" :value="m.userId">{{ m.name }} ({{ m.role }})</option>
+      </select>
     </div>
 
     <h3 class="mt-5 mb-2 text-xs font-semibold uppercase tracking-wide text-faint">Activity</h3>
