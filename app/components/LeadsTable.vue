@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import type { StatusRow } from '~/composables/useStatuses'
+import { OPTIONAL_FIELD_LABELS, type OptionalFieldKey } from '~~/shared/types'
+import { optionalFieldDisplay } from '~/utils/optionalFields'
 
 interface LeadRow {
   id: number; name: string; phoneE164: string | null; phoneRaw: string | null
   area: string; statusId: number | null; remarks: string | null
+  email?: string | null; intent?: string | null; propertyType?: string | null
+  budgetMin?: number | null; budgetMax?: number | null; tags?: string[] | null
 }
-const props = defineProps<{ rows: LeadRow[]; statuses: StatusRow[]; loading?: boolean; sort?: string; dir?: string }>()
+const props = defineProps<{
+  rows: LeadRow[]; statuses: StatusRow[]; loading?: boolean
+  sort?: string; dir?: string; enabledFields?: OptionalFieldKey[]
+}>()
 const emit = defineEmits<{
   open: [id: number]
   statusChange: [id: number, statusId: number]
@@ -15,12 +22,12 @@ const emit = defineEmits<{
 }>()
 
 const selected = defineModel<number[]>('selected', { default: () => [] })
+const fields = computed(() => props.enabledFields ?? [])
+const colspan = computed(() => 7 + fields.value.length)
 
 const allChecked = computed(() => props.rows.length > 0 && props.rows.every((r) => selected.value.includes(r.id)))
 const someChecked = computed(() => props.rows.some((r) => selected.value.includes(r.id)) && !allChecked.value)
-function toggleAll() {
-  selected.value = allChecked.value ? [] : props.rows.map((r) => r.id)
-}
+function toggleAll() { selected.value = allChecked.value ? [] : props.rows.map((r) => r.id) }
 function toggleOne(id: number) {
   selected.value = selected.value.includes(id) ? selected.value.filter((x) => x !== id) : [...selected.value, id]
 }
@@ -43,6 +50,7 @@ const th = 'px-4 py-3 text-left text-[11px] font-medium uppercase tracking-wider
           <th :class="th">Phone</th>
           <th :class="[th, 'cursor-pointer select-none']" @click="emit('sortBy', 'area')">Area{{ arrow('area') }}</th>
           <th :class="th">Status</th>
+          <th v-for="key in fields" :key="key" :class="th">{{ OPTIONAL_FIELD_LABELS[key] }}</th>
           <th :class="th">Remarks</th>
           <th :class="[th, 'text-right']">Contact</th>
         </tr>
@@ -55,6 +63,7 @@ const th = 'px-4 py-3 text-left text-[11px] font-medium uppercase tracking-wider
             <td class="px-4 py-3.5"><div class="h-3.5 w-28 rounded bg-line animate-pulse" /></td>
             <td class="px-4 py-3.5"><div class="h-3.5 w-20 rounded bg-line animate-pulse" /></td>
             <td class="px-4 py-3.5"><div class="h-5 w-24 rounded-full bg-line animate-pulse" /></td>
+            <td v-for="key in fields" :key="key" class="px-4 py-3.5"><div class="h-3.5 w-16 rounded bg-line animate-pulse" /></td>
             <td class="px-4 py-3.5"><div class="h-3.5 w-24 rounded bg-line animate-pulse" /></td>
             <td class="px-4 py-3.5"><div class="flex justify-end gap-2"><div class="h-6 w-14 rounded-md bg-line animate-pulse" /><div class="h-6 w-10 rounded-md bg-line animate-pulse" /></div></td>
           </tr>
@@ -71,6 +80,7 @@ const th = 'px-4 py-3 text-left text-[11px] font-medium uppercase tracking-wider
             <td class="px-4 py-3.5">
               <StatusSelect :model-value="row.statusId" :statuses="statuses" @update:model-value="(v) => emit('statusChange', row.id, v)" />
             </td>
+            <td v-for="key in fields" :key="key" class="px-4 py-3.5 text-muted">{{ optionalFieldDisplay(row, key) || '—' }}</td>
             <td class="px-4 py-3.5">
               <input
                 :value="row.remarks ?? ''"
@@ -88,7 +98,7 @@ const th = 'px-4 py-3 text-left text-[11px] font-medium uppercase tracking-wider
           </tr>
 
           <tr v-if="!rows.length">
-            <td colspan="7" class="py-16 text-center">
+            <td :colspan="colspan" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3">
                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-faint">
                   <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="12" y2="15"/>

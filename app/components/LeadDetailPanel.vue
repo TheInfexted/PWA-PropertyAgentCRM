@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { isoToDateInput, dateInputToIso } from '~~/shared/utils/followup'
+import { OPTIONAL_FIELD_LABELS, type OptionalFieldKey } from '~~/shared/types'
+import { optionalFieldDisplay, type OptionalFieldSource } from '~/utils/optionalFields'
 
 const props = defineProps<{ leadId: number }>()
 const emit = defineEmits<{ close: []; changed: [] }>()
@@ -11,6 +13,13 @@ const { update } = useLeads()
 const { session } = useUserSession()
 const isOwner = computed(() => (session.value as { role?: string } | null)?.role === 'owner')
 const { data: members } = useFetch('/api/members', { lazy: true, immediate: isOwner.value, default: () => [] })
+
+const ws = useWorkspaceSettings()
+const { enabledFields } = ws
+onMounted(() => { ws.load() })
+function optDisplay(key: OptionalFieldKey) {
+  return optionalFieldDisplay((lead.value ?? {}) as OptionalFieldSource, key)
+}
 
 async function assign(userId: number) {
   await update(props.leadId, { assignedTo: userId })
@@ -50,6 +59,10 @@ async function saveFollowUp(value: string | null) {
       <div><dt class="text-xs uppercase tracking-wide text-faint">Phone</dt><dd class="font-mono text-ink">{{ lead?.phoneE164 || lead?.phoneRaw || '—' }}</dd></div>
       <div><dt class="text-xs uppercase tracking-wide text-faint">Area</dt><dd class="text-ink">{{ lead?.area || '—' }}</dd></div>
       <div><dt class="text-xs uppercase tracking-wide text-faint">Remarks</dt><dd class="text-ink">{{ lead?.remarks || '—' }}</dd></div>
+      <div v-for="key in enabledFields" :key="key">
+        <dt class="text-xs uppercase tracking-wide text-faint">{{ OPTIONAL_FIELD_LABELS[key] }}</dt>
+        <dd class="text-ink">{{ optDisplay(key) || '—' }}</dd>
+      </div>
     </dl>
 
     <div class="mt-5 rounded-lg border border-line bg-canvas/50 p-3">

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { list, update, bulk } = useLeads()
 const { statuses, load: loadStatuses } = useStatuses()
+const { enabledFields, load: loadWsSettings } = useWorkspaceSettings()
 const { session } = useUserSession()
 const isOwner = computed(() => (session.value as { role?: string } | null)?.role === 'owner')
 
@@ -22,6 +23,7 @@ const selected = ref<number[]>([])
 watch([search, statusId, area, assignedTo, dueOnly, sort, dir], () => { page.value = 1 })
 
 await loadStatuses()
+await loadWsSettings()
 const { data: members } = useFetch<{ userId: number; name: string }[]>('/api/members', {
   lazy: true, immediate: isOwner.value, default: () => [],
 })
@@ -128,6 +130,7 @@ const selBtn = 'rounded-md border border-line bg-surface px-2.5 py-1.5 text-sm'
       :loading="pending"
       :sort="sort"
       :dir="dir"
+      :enabled-fields="enabledFields"
       @open="openId = $event"
       @status-change="onStatusChange"
       @remarks-change="onRemarksChange"
