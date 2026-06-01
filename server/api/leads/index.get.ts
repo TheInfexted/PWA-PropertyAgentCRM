@@ -11,5 +11,6 @@ export default defineEventHandler(async (event) => {
     search: (q.search as string) || undefined,
     sort: (q.sort as 'name' | 'createdAt' | 'area') || 'createdAt',
     dir: (q.dir as 'asc' | 'desc') || 'desc',
+    dueOnly: q.due === '1' || q.due === 'true',
   })
 })

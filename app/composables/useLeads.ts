@@ -9,6 +9,7 @@ export interface LeadsQuery {
   search?: string
   sort?: 'name' | 'createdAt' | 'area'
   dir?: 'asc' | 'desc'
+  dueOnly?: boolean
 }
 
 /** Pure: strips undefined/empty values so the URL stays clean. */
@@ -20,7 +21,15 @@ export function buildLeadsQuery(q: LeadsQuery): Record<string, string | number> 
   if (q.search) out.search = q.search
   if (q.sort) out.sort = q.sort
   if (q.dir) out.dir = q.dir
+  if (q.dueOnly) out.due = 1
   return out
+}
+
+export interface BulkActionBody {
+  action: 'assign' | 'status' | 'delete'
+  ids: number[]
+  assignedTo?: number | null
+  statusId?: number | null
 }
 
 export function useLeads() {
@@ -39,5 +48,11 @@ export function useLeads() {
   async function remove(id: number) {
     return request(`/api/leads/${id}`, { method: 'DELETE' })
   }
-  return { list, create, update, remove }
+  async function logCall(id: number, statusId?: number | null) {
+    return request(`/api/leads/${id}/call`, { method: 'POST', body: { statusId } })
+  }
+  async function bulk(body: BulkActionBody) {
+    return request<{ ok: true; affected: number }>('/api/leads/bulk', { method: 'POST', body })
+  }
+  return { list, create, update, remove, logCall, bulk }
 }

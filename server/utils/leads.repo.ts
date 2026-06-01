@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNotNull, like, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, isNotNull, like, or, sql } from 'drizzle-orm'
 import { leads, activities } from '~~/server/db/schema'
 import { leadVisibilityScope, type VisibilityContext } from '~~/shared/utils/visibility'
 import { normalizePhone } from '~~/shared/utils/phone'
@@ -10,6 +10,7 @@ export interface LeadListFilters {
   area?: string
   assignedTo?: number
   search?: string
+  dueOnly?: boolean
 }
 
 export interface WherePart { col: 'workspaceId' | 'assignedTo' | 'statusId' | 'area'; value: number | string }
@@ -34,6 +35,10 @@ function whereFor(ctx: VisibilityContext, filters: LeadListFilters) {
   if (filters.search) {
     const q = `%${filters.search}%`
     conds.push(or(like(leads.name, q), like(leads.phoneE164, q), like(leads.phoneRaw, q))!)
+  }
+  if (filters.dueOnly) {
+    conds.push(isNotNull(leads.nextFollowUpAt))
+    conds.push(sql`date(${leads.nextFollowUpAt}) <= curdate()`)
   }
   return and(...conds)
 }
@@ -174,4 +179,43 @@ export async function bulkCreateLeads(ctx: RequestContext, items: ImportLeadValu
     })),
   )
   return values.length
+}
+
+/** Set status on visible leads in `ids`; logs one status_change activity each. */
+export async function bulkSetStatus(ctx: RequestContext, ids: number[], statusId: number | null): Promise<number> {
+  if (!ids.length) return 0
+  const db = useDb()
+  const visible = await db.select({ id: leads.id }).from(leads).where(and(whereFor(ctx, {}), inArray(leads.id, ids)))
+  const vids = visible.map((r) => r.id)
+  if (!vids.length) return 0
+  await db.update(leads).set({ statusId }).where(and(eq(leads.workspaceId, ctx.workspaceId), inArray(leads.id, vids)))
+  await db.insert(activities).values(vids.map((leadId) => ({
+    workspaceId: ctx.workspaceId, leadId, type: 'status_change' as const, actorUserId: ctx.userId, detail: { statusId },
+  })))
+  return vids.length
+}
+
+/** Reassign visible leads in `ids` to `assignedTo`; logs one assigned activity each. Owner-only (enforced at endpoint). */
+export async function bulkAssign(ctx: RequestContext, ids: number[], assignedTo: number): Promise<number> {
+  if (!ids.length) return 0
+  const db = useDb()
+  const visible = await db.select({ id: leads.id }).from(leads).where(and(whereFor(ctx, {}), inArray(leads.id, ids)))
+  const vids = visible.map((r) => r.id)
+  if (!vids.length) return 0
+  await db.update(leads).set({ assignedTo }).where(and(eq(leads.workspaceId, ctx.workspaceId), inArray(leads.id, vids)))
+  await db.insert(activities).values(vids.map((leadId) => ({
+    workspaceId: ctx.workspaceId, leadId, type: 'assigned' as const, actorUserId: ctx.userId, detail: { assignedTo },
+  })))
+  return vids.length
+}
+
+/** Delete visible leads in `ids`. Returns count deleted. */
+export async function bulkDelete(ctx: RequestContext, ids: number[]): Promise<number> {
+  if (!ids.length) return 0
+  const db = useDb()
+  const visible = await db.select({ id: leads.id }).from(leads).where(and(whereFor(ctx, {}), inArray(leads.id, ids)))
+  const vids = visible.map((r) => r.id)
+  if (!vids.length) return 0
+  await db.delete(leads).where(and(eq(leads.workspaceId, ctx.workspaceId), inArray(leads.id, vids)))
+  return vids.length
 }

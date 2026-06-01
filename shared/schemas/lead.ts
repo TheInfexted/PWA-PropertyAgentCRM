@@ -29,3 +29,15 @@ export const leadPatchSchema = leadFields.partial()
 
 export type LeadInput = z.infer<typeof leadInputSchema>
 export type LeadPatch = z.infer<typeof leadPatchSchema>
+
+export const bulkActionSchema = z
+  .object({
+    ids: z.array(z.number().int().positive()).min(1).max(200),
+    action: z.enum(['assign', 'status', 'delete']),
+    assignedTo: z.number().int().positive().nullable().optional(),
+    statusId: z.number().int().positive().nullable().optional(),
+  })
+  .refine((d) => d.action !== 'assign' || d.assignedTo !== undefined, { message: 'assign requires assignedTo', path: ['assignedTo'] })
+  .refine((d) => d.action !== 'status' || d.statusId !== undefined, { message: 'status requires statusId', path: ['statusId'] })
+
+export type BulkAction = z.infer<typeof bulkActionSchema>
