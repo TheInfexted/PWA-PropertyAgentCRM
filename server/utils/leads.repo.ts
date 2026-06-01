@@ -1,5 +1,5 @@
 import { and, asc, desc, eq, like, or, sql } from 'drizzle-orm'
-import { leads } from '~~/server/db/schema'
+import { leads, activities } from '~~/server/db/schema'
 import { leadVisibilityScope, type VisibilityContext } from '~~/shared/utils/visibility'
 import { normalizePhone } from '~~/shared/utils/phone'
 import type { LeadInput } from '~~/shared/schemas/lead'
@@ -121,4 +121,46 @@ export async function updateLead(ctx: RequestContext, id: number, data: Partial<
 export async function deleteLead(ctx: RequestContext, id: number) {
   const db = useDb()
   await db.delete(leads).where(and(eq(leads.workspaceId, ctx.workspaceId), eq(leads.id, id)))
+}
+
+export interface ImportLeadValues {
+  name: string
+  phoneE164: string | null
+  phoneRaw: string | null
+  phoneValid: boolean
+  area: string
+  statusId: number | null
+  remarks: string
+}
+
+/** Bulk-insert imported leads + one 'imported' activity each. Returns count inserted. */
+export async function bulkCreateLeads(ctx: RequestContext, items: ImportLeadValues[]): Promise<number> {
+  if (!items.length) return 0
+  const db = useDb()
+  const values = items.map((it) => ({
+    workspaceId: ctx.workspaceId,
+    name: it.name,
+    phoneE164: it.phoneE164,
+    phoneRaw: it.phoneRaw,
+    phoneValid: it.phoneValid,
+    area: it.area,
+    statusId: it.statusId,
+    remarks: it.remarks,
+    assignedTo: ctx.userId,
+    source: 'import' as const,
+    tags: [],
+    createdBy: ctx.userId,
+  }))
+  const [res] = await db.insert(leads).values(values)
+  // InnoDB assigns contiguous ids for a single multi-row insert (default autoinc lock mode).
+  const firstId = Number(res.insertId)
+  await db.insert(activities).values(
+    values.map((_, i) => ({
+      workspaceId: ctx.workspaceId,
+      leadId: firstId + i,
+      type: 'imported' as const,
+      actorUserId: ctx.userId,
+    })),
+  )
+  return values.length
 }
