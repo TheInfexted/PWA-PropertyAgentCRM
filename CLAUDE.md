@@ -26,7 +26,7 @@ If you edit `PRODUCT.md` or `DESIGN.md`, re-run:
 - Specs and plans live in `docs/superpowers/specs/` and `docs/superpowers/plans/`.
 
 ## Deploy (CloudPanel / Hostinger)
-`git pull && pnpm install && pnpm db:migrate && pnpm build && pm2 restart crm-demo`. The app runs under PM2 on the CloudPanel App Port with `--node-args="--env-file=.env"`. Full steps in the spec, §6.8.
+`git pull && pnpm install --frozen-lockfile && pnpm db:migrate && pnpm build && pm2 restart crm-demo`. Use `--frozen-lockfile` so pnpm never rewrites `pnpm-lock.yaml` on the server (the cause of recurring "local changes would be overwritten" pull conflicts). `packageManager` is pinned to pnpm 10.33 so corepack matches the lockfile. The app runs under PM2 on the CloudPanel App Port with `--node-args="--env-file=.env"`. Full steps in the spec, §6.8.
 
 ## Environment note
 This project lives under `~/Desktop/` (iCloud-synced), which spawns `" 2"` conflict copies. `.gitignore` excludes them; consider moving the repo to a non-synced folder.
