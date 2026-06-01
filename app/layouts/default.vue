@@ -3,7 +3,7 @@ const route = useRoute()
 const { user } = useUserSession()
 const menuOpen = ref(false)
 
-const titles: Record<string, string> = { '/': 'Leads', '/import': 'Import' }
+const titles: Record<string, string> = { '/': 'Leads', '/import': 'Import', '/due': 'Due Today' }
 const pageTitle = computed(() => titles[route.path] ?? '')
 const userName = computed(() => (user.value as { name?: string } | null)?.name ?? '')
 const initials = computed(
@@ -44,6 +44,16 @@ async function logout() {
             <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
           </svg>
           Leads
+        </NuxtLink>
+        <NuxtLink
+          to="/due"
+          class="flex items-center gap-2.5 rounded-md px-3 py-2 text-muted transition-colors hover:bg-canvas hover:text-ink"
+          active-class="bg-accent-soft text-accent font-medium"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>
+          </svg>
+          Due Today
         </NuxtLink>
         <NuxtLink
           to="/import"
