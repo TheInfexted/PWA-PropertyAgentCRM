@@ -50,7 +50,7 @@ async function onCreated() {
       @status-change="onStatusChange"
     />
 
-    <LeadDetailPanel v-if="openId" :lead-id="openId" @close="openId = null" />
+    <LeadDetailPanel v-if="openId" :lead-id="openId" @close="openId = null" @changed="refresh" />
     <AddLeadModal v-if="showAdd" :statuses="statuses" @created="onCreated" @close="showAdd = false" />
   </div>
 </template>
