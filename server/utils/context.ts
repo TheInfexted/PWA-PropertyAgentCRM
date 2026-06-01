@@ -22,3 +22,9 @@ export async function requireContext(event: H3Event): Promise<RequestContext> {
   const session = await requireUserSession(event)
   return contextFromSession(session as unknown as Partial<SessionPayload>)
 }
+
+export function requireOwner(ctx: RequestContext) {
+  if (ctx.role !== 'owner') {
+    throw createError({ statusCode: 403, message: 'Only the workspace owner can do that' })
+  }
+}
