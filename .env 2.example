@@ -1,0 +1,4 @@
+DATABASE_URL="mysql://crm:password@127.0.0.1:3306/crm"
+# 32+ random chars; generate with: openssl rand -base64 32
+NUXT_SESSION_PASSWORD=""
+NUXT_PUBLIC_APP_URL="http://localhost:3000"
