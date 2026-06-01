@@ -32,7 +32,7 @@ async function submit() {
         <div class="w-7 h-7 rounded-md bg-accent flex items-center justify-center shrink-0">
           <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M16 6.5l7.5 6.2V24a1.2 1.2 0 0 1-1.2 1.2h-4.1v-6.1h-4.4v6.1H10.2A1.2 1.2 0 0 1 9 24V12.7z" fill="white"/>
-            <circle cx="16" cy="13.2" r="1.7" fill="#2f54eb"/>
+            <circle cx="16" cy="13.2" r="1.7" fill="#b86a45"/>
           </svg>
         </div>
         <span class="font-semibold tracking-tight text-ink text-[15px]">Property CRM</span>

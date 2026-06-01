@@ -1,42 +1,44 @@
 @import "tailwindcss";
 
 /* ----------------------------------------------------------------------------
-   Design tokens — "blueprint operator": calm, premium, technical light theme.
-   One cool-slate neutral family + a single blue accent (WhatsApp green is the
-   one semantic exception). Tabular mono for phone numbers. Tinted shadows.
+   Design tokens — warm & approachable (per PRODUCT.md). A helpful work tool:
+   warm paper neutrals tinted toward the accent hue, ONE restrained terracotta
+   accent (actions + state only), softer radii, warm-tinted shadows. OKLCH so
+   neutrals stay tinted and the accent desaturates cleanly. Never #000 / #fff.
 ---------------------------------------------------------------------------- */
 @theme {
   /* Type */
   --font-sans: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", "JetBrains Mono", monospace;
 
-  /* Neutrals (one cool family) */
-  --color-canvas: #f4f6f9;
-  --color-surface: #ffffff;
-  --color-ink: #0d121c;
-  --color-muted: #58616f;
-  --color-faint: #8b93a1;
-  --color-line: #e4e7ec;
-  --color-line-strong: #d4d9e1;
+  /* Warm neutrals — one family, tinted toward the terracotta brand hue.
+     canvas = content bg, surface = raised layer (cards, sidebar, topbar). */
+  --color-canvas: oklch(0.985 0.006 70);
+  --color-surface: oklch(0.998 0.003 75);
+  --color-ink: oklch(0.24 0.012 55);
+  --color-muted: oklch(0.47 0.013 55);
+  --color-faint: oklch(0.62 0.011 60);
+  --color-line: oklch(0.915 0.008 65);
+  --color-line-strong: oklch(0.855 0.010 60);
 
-  /* Single accent — blueprint blue */
-  --color-accent: #2f54eb;
-  --color-accent-strong: #2240c4;
-  --color-accent-soft: #eef1fe;
+  /* Single warm accent — terracotta / clay. Restrained: actions + state only. */
+  --color-accent: oklch(0.57 0.135 42);
+  --color-accent-strong: oklch(0.49 0.135 42);
+  --color-accent-soft: oklch(0.955 0.030 55);
 
-  /* WhatsApp (the one semantic colour we keep) */
-  --color-wa: #1aa45a;
-  --color-wa-strong: #15904e;
+  /* WhatsApp green — the one semantic exception we keep */
+  --color-wa: oklch(0.58 0.115 150);
+  --color-wa-strong: oklch(0.50 0.115 150);
 
-  /* Radii — varied: tighter inner, softer containers */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  /* Softer radii for a warmer, friendlier feel */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
 
-  /* Tinted shadows (cool slate, never pure black) */
-  --shadow-card: 0 1px 2px rgba(13, 18, 28, 0.04), 0 2px 6px rgba(13, 18, 28, 0.05);
-  --shadow-pop: 0 14px 34px -12px rgba(13, 18, 28, 0.24), 0 2px 6px rgba(13, 18, 28, 0.06);
+  /* Warm-tinted shadows (toward the brand hue, never cool/black) */
+  --shadow-card: 0 1px 2px rgba(67, 47, 33, 0.05), 0 2px 8px rgba(67, 47, 33, 0.06);
+  --shadow-pop: 0 16px 36px -12px rgba(67, 47, 33, 0.22), 0 2px 6px rgba(67, 47, 33, 0.07);
 }
 
 @layer base {
@@ -74,6 +76,16 @@
   button, a, select, input, textarea, [role="button"] {
     transition: background-color 0.18s ease, border-color 0.18s ease,
       color 0.18s ease, box-shadow 0.18s ease, transform 0.08s ease;
+  }
+
+  /* Respect users who prefer less motion */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
   }
 
   ::selection {
