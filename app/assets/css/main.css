@@ -1,1 +1,86 @@
 @import "tailwindcss";
+
+/* ----------------------------------------------------------------------------
+   Design tokens — "blueprint operator": calm, premium, technical light theme.
+   One cool-slate neutral family + a single blue accent (WhatsApp green is the
+   one semantic exception). Tabular mono for phone numbers. Tinted shadows.
+---------------------------------------------------------------------------- */
+@theme {
+  /* Type */
+  --font-sans: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+
+  /* Neutrals (one cool family) */
+  --color-canvas: #f4f6f9;
+  --color-surface: #ffffff;
+  --color-ink: #0d121c;
+  --color-muted: #58616f;
+  --color-faint: #8b93a1;
+  --color-line: #e4e7ec;
+  --color-line-strong: #d4d9e1;
+
+  /* Single accent — blueprint blue */
+  --color-accent: #2f54eb;
+  --color-accent-strong: #2240c4;
+  --color-accent-soft: #eef1fe;
+
+  /* WhatsApp (the one semantic colour we keep) */
+  --color-wa: #1aa45a;
+  --color-wa-strong: #15904e;
+
+  /* Radii — varied: tighter inner, softer containers */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* Tinted shadows (cool slate, never pure black) */
+  --shadow-card: 0 1px 2px rgba(13, 18, 28, 0.04), 0 2px 6px rgba(13, 18, 28, 0.05);
+  --shadow-pop: 0 14px 34px -12px rgba(13, 18, 28, 0.24), 0 2px 6px rgba(13, 18, 28, 0.06);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Headlines: present, tight, no orphans */
+  h1, h2, h3 {
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  /* Phone numbers & other mono text line up in columns */
+  .font-mono, code, kbd, samp {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Accessible keyboard focus everywhere */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* Smooth, physical-feeling interactions */
+  button, a, select, input, textarea, [role="button"] {
+    transition: background-color 0.18s ease, border-color 0.18s ease,
+      color 0.18s ease, box-shadow 0.18s ease, transform 0.08s ease;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+  }
+
+  ::placeholder {
+    color: var(--color-faint);
+  }
+}
