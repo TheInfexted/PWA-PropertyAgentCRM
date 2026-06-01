@@ -1,3 +1,5 @@
+import { normalizePhone } from '~~/shared/utils/phone'
+
 export interface ColumnMap {
   name: number | null
   phone: number | null
@@ -80,4 +82,51 @@ export function autoMapColumns(header: string[]): ColumnMap {
     }
   })
   return map
+}
+
+export interface DraftCells {
+  name: string
+  phone: string
+  area: string
+  statusLabel: string
+  remarks: string
+}
+
+export function toDraft(row: string[], map: ColumnMap): DraftCells {
+  const at = (i: number | null) => (i === null ? '' : (row[i] ?? '').trim())
+  return {
+    name: at(map.name),
+    phone: at(map.phone),
+    area: at(map.area),
+    statusLabel: at(map.status),
+    remarks: at(map.remarks),
+  }
+}
+
+export type NormalizedDraft = Omit<AnnotatedRow, 'index' | 'statusId' | 'duplicate'>
+
+export function normalizeDraft(d: DraftCells): NormalizedDraft {
+  const p = normalizePhone(d.phone)
+  const valid = Boolean(d.name) || Boolean(d.phone)
+  return {
+    name: d.name,
+    phoneRaw: p.raw,
+    phoneE164: p.e164,
+    phoneValid: p.valid,
+    area: d.area,
+    statusLabel: d.statusLabel,
+    remarks: d.remarks,
+    valid,
+    error: valid ? null : 'No name or phone',
+  }
+}
+
+/** Mutates rows in place: second+ occurrence of a phone within the batch is 'in-batch'. */
+export function markInBatchDupes(rows: Array<Pick<AnnotatedRow, 'phoneE164' | 'duplicate'>>): void {
+  const seen = new Set<string>()
+  for (const r of rows) {
+    if (!r.phoneE164) continue
+    if (seen.has(r.phoneE164)) r.duplicate = 'in-batch'
+    else seen.add(r.phoneE164)
+  }
 }
