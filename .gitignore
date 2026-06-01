@@ -18,3 +18,9 @@ dist
 
 # superpowers brainstorm scratch (mockups, server state)
 .superpowers/
+
+# cloud-sync (iCloud/Dropbox) conflict copies — never commit these
+* 2.*
+* 2
+* 3.*
+* 3

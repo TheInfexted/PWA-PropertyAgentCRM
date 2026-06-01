@@ -13,12 +13,6 @@
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx server/db/seed.ts"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@parcel/watcher",
-      "esbuild"
-    ]
-  },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
     "libphonenumber-js": "^1.13.2",
