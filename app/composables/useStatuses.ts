@@ -7,8 +7,11 @@ export interface StatusRow {
 
 export function useStatuses() {
   const statuses = useState<StatusRow[]>('statuses', () => [])
+  // useRequestFetch forwards the request cookies during SSR (plain $fetch does not),
+  // so authenticated calls work on a full page load, not just client navigation.
+  const request = useRequestFetch()
   async function load() {
-    statuses.value = await $fetch<StatusRow[]>('/api/statuses')
+    statuses.value = await request<StatusRow[]>('/api/statuses')
     return statuses.value
   }
   function byId(id: number | null | undefined) {

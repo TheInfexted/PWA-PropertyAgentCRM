@@ -24,17 +24,20 @@ export function buildLeadsQuery(q: LeadsQuery): Record<string, string | number> 
 }
 
 export function useLeads() {
+  // useRequestFetch forwards the request cookies during SSR (plain $fetch does not),
+  // so the leads list loads on a full page render, not just after client navigation.
+  const request = useRequestFetch()
   async function list(q: LeadsQuery) {
-    return $fetch('/api/leads', { query: buildLeadsQuery(q) })
+    return request('/api/leads', { query: buildLeadsQuery(q) })
   }
   async function create(data: LeadInput) {
-    return $fetch('/api/leads', { method: 'POST', body: data })
+    return request('/api/leads', { method: 'POST', body: data })
   }
   async function update(id: number, data: Partial<LeadInput>) {
-    return $fetch(`/api/leads/${id}`, { method: 'PATCH', body: data })
+    return request(`/api/leads/${id}`, { method: 'PATCH', body: data })
   }
   async function remove(id: number) {
-    return $fetch(`/api/leads/${id}`, { method: 'DELETE' })
+    return request(`/api/leads/${id}`, { method: 'DELETE' })
   }
   return { list, create, update, remove }
 }
