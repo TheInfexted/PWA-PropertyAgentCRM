@@ -4,7 +4,11 @@ const { user, session } = useUserSession()
 const menuOpen = ref(false)
 const isOwner = computed(() => (session.value as { role?: string } | null)?.role === 'owner')
 
-const titles: Record<string, string> = { '/': 'Leads', '/import': 'Import', '/due': 'Due Today', '/settings': 'Settings', '/members': 'Team' }
+const { account, load: loadAccount } = useAccount()
+onMounted(() => { loadAccount() })
+const avatarUrl = computed(() => account.value?.avatar ?? null)
+
+const titles: Record<string, string> = { '/': 'Leads', '/import': 'Import', '/due': 'Due Today', '/settings': 'Settings', '/members': 'Team', '/account': 'Account' }
 const pageTitle = computed(() => titles[route.path] ?? '')
 const userName = computed(() => (user.value as { name?: string } | null)?.name ?? '')
 const initials = computed(
@@ -19,9 +23,9 @@ async function logout() {
 </script>
 
 <template>
-  <div class="flex min-h-dvh bg-canvas text-ink">
+  <div class="flex h-dvh overflow-hidden bg-canvas text-ink">
     <!-- Sidebar -->
-    <aside class="flex w-60 shrink-0 flex-col border-r border-line bg-surface p-4">
+    <aside class="flex h-dvh w-60 shrink-0 flex-col border-r border-line bg-surface p-4">
       <!-- Brand mark -->
       <div class="mb-7 flex items-center gap-2.5 px-1">
         <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent">
@@ -34,7 +38,7 @@ async function logout() {
       </div>
 
       <!-- Nav -->
-      <nav class="flex-1 space-y-0.5 text-sm">
+      <nav class="flex-1 space-y-0.5 overflow-y-auto text-sm">
         <NuxtLink
           to="/"
           class="flex items-center gap-2.5 rounded-md px-3 py-2 text-muted transition-colors hover:bg-canvas hover:text-ink"
@@ -96,7 +100,10 @@ async function logout() {
           class="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left transition-colors hover:bg-canvas"
           @click="menuOpen = !menuOpen"
         >
-          <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent">{{ initials }}</span>
+          <span class="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent-soft text-xs font-semibold text-accent">
+            <img v-if="avatarUrl" :src="avatarUrl" alt="" class="h-full w-full object-cover">
+            <template v-else>{{ initials }}</template>
+          </span>
           <span class="min-w-0 flex-1 truncate text-sm text-ink">{{ userName }}</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-faint">
             <path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/>
@@ -106,6 +113,16 @@ async function logout() {
         <div v-if="menuOpen">
           <div class="fixed inset-0 z-10" @click="menuOpen = false" />
           <div class="absolute bottom-full left-0 z-20 mb-1.5 w-full overflow-hidden rounded-md border border-line bg-surface p-1 shadow-pop">
+            <NuxtLink
+              to="/account"
+              class="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm text-muted transition-colors hover:bg-canvas hover:text-ink"
+              @click="menuOpen = false"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+              Account
+            </NuxtLink>
             <button
               class="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm text-muted transition-colors hover:bg-canvas hover:text-ink"
               @click="logout"
@@ -126,7 +143,7 @@ async function logout() {
         <h1 class="text-base font-semibold tracking-tight text-ink">{{ pageTitle }}</h1>
         <div id="topbar-actions" class="flex items-center gap-2" />
       </header>
-      <main class="p-8">
+      <main class="flex-1 overflow-y-auto p-8">
         <div class="mx-auto max-w-[1400px]">
           <slot />
         </div>
