@@ -1,7 +1,8 @@
-import { and, asc, desc, eq, gte, inArray, isNotNull, like, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, gte, inArray, lte, isNotNull, like, or, sql } from 'drizzle-orm'
 import { leads, activities, statuses } from '~~/server/db/schema'
 import { leadVisibilityScope, type VisibilityContext } from '~~/shared/utils/visibility'
 import { normalizePhone } from '~~/shared/utils/phone'
+import { businessToday } from '~~/shared/utils/followup'
 import type { LeadInput } from '~~/shared/schemas/lead'
 import type { RequestContext } from './context'
 
@@ -30,6 +31,9 @@ export function buildLeadWhereParts(ctx: VisibilityContext, filters: LeadListFil
 
 const COL = { workspaceId: leads.workspaceId, assignedTo: leads.assignedTo, statusId: leads.statusId, area: leads.area }
 
+/** Business-timezone "today" (YYYY-MM-DD) — the due cutoff, independent of the server/MySQL clock. */
+const dueCutoff = () => businessToday(useRuntimeConfig().public.businessTimezone)
+
 function whereFor(ctx: VisibilityContext, filters: LeadListFilters) {
   const conds = buildLeadWhereParts(ctx, filters).map((p) => eq(COL[p.col], p.value as never))
   if (filters.search) {
@@ -38,7 +42,7 @@ function whereFor(ctx: VisibilityContext, filters: LeadListFilters) {
   }
   if (filters.dueOnly) {
     conds.push(isNotNull(leads.nextFollowUpAt))
-    conds.push(sql`date(${leads.nextFollowUpAt}) <= curdate()`)
+    conds.push(lte(leads.nextFollowUpAt, dueCutoff()))
   }
   return and(...conds)
 }
@@ -156,7 +160,7 @@ export async function listDueFollowUps(ctx: RequestContext) {
   const where = and(
     whereFor(ctx, {}),
     isNotNull(leads.nextFollowUpAt),
-    sql`${leads.nextFollowUpAt} <= curdate()`,
+    lte(leads.nextFollowUpAt, dueCutoff()),
   )
   return db.select().from(leads).where(where).orderBy(asc(leads.nextFollowUpAt)).limit(200)
 }

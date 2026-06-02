@@ -1,18 +1,30 @@
 import { describe, it, expect } from 'vitest'
-import { followUpState, todayStr, dateInputToStored, storedToDateInput } from './followup'
+import { followUpState, todayStr, businessToday, dateInputToStored, storedToDateInput } from './followup'
 
-// Local noon so the local calendar date is deterministic regardless of the runner TZ.
-const NOW = new Date(2026, 5, 1, 12, 0, 0)
+const TODAY = '2026-06-01'
 
 describe('followUpState', () => {
-  it('is "today" on the same calendar day', () => expect(followUpState('2026-06-01', NOW)).toBe('today'))
-  it('is "overdue" before today', () => expect(followUpState('2026-05-30', NOW)).toBe('overdue'))
-  it('is "upcoming" after today', () => expect(followUpState('2026-06-05', NOW)).toBe('upcoming'))
-  it('is null with no date', () => expect(followUpState(null, NOW)).toBeNull())
+  it('is "today" on the same calendar day', () => expect(followUpState('2026-06-01', TODAY)).toBe('today'))
+  it('is "overdue" before today', () => expect(followUpState('2026-05-30', TODAY)).toBe('overdue'))
+  it('is "upcoming" after today', () => expect(followUpState('2026-06-05', TODAY)).toBe('upcoming'))
+  it('is null with no date', () => expect(followUpState(null, TODAY)).toBeNull())
 })
 
 describe('todayStr', () => {
-  it('formats the local date as YYYY-MM-DD', () => expect(todayStr(NOW)).toBe('2026-06-01'))
+  it('formats the local date as YYYY-MM-DD', () => {
+    expect(todayStr(new Date(2026, 5, 1, 12, 0, 0))).toBe('2026-06-01')
+  })
+})
+
+describe('businessToday', () => {
+  it('picks the calendar day in the given IANA timezone', () => {
+    // 2026-06-01T17:00Z is 2026-06-02 01:00 in UTC+8
+    expect(businessToday('Asia/Kuala_Lumpur', new Date('2026-06-01T17:00:00.000Z'))).toBe('2026-06-02')
+    expect(businessToday('UTC', new Date('2026-06-01T17:00:00.000Z'))).toBe('2026-06-01')
+  })
+  it('agrees across the boundary at UTC midday', () => {
+    expect(businessToday('Asia/Kuala_Lumpur', new Date('2026-06-02T04:00:00.000Z'))).toBe('2026-06-02')
+  })
 })
 
 describe('dateInputToStored / storedToDateInput', () => {

@@ -82,5 +82,10 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     databaseUrl: process.env.DATABASE_URL,
+    public: {
+      // Defines "today" for follow-ups / Due Today, independent of the server clock.
+      // Override in production with NUXT_PUBLIC_BUSINESS_TIMEZONE.
+      businessTimezone: 'Asia/Kuala_Lumpur',
+    },
   },
 })

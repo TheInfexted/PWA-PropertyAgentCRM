@@ -8,10 +8,20 @@ export function todayStr(now: Date = new Date()): string {
   return `${y}-${m}-${d}`
 }
 
-/** Compare a 'YYYY-MM-DD' follow-up date to today (local). null if no date. */
-export function followUpState(date: string | null, now: Date = new Date()): FollowUpState | null {
+/** Today's calendar date as 'YYYY-MM-DD' in a given IANA timezone (e.g. 'Asia/Kuala_Lumpur'). */
+export function businessToday(tz: string, now: Date = new Date()): string {
+  // en-CA renders as YYYY-MM-DD; timeZone makes the day boundary independent of the server clock.
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now)
+}
+
+/** Compare a 'YYYY-MM-DD' follow-up date to a 'YYYY-MM-DD' today. null if no date. */
+export function followUpState(date: string | null, today: string = todayStr()): FollowUpState | null {
   if (!date) return null
-  const today = todayStr(now)
   if (date < today) return 'overdue'
   if (date === today) return 'today'
   return 'upcoming'

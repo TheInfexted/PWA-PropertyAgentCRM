@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { followUpState, storedToDateInput } from '~~/shared/utils/followup'
+import { followUpState, storedToDateInput, businessToday } from '~~/shared/utils/followup'
 import type { DueLead } from '~/composables/useFollowUps'
 
 defineProps<{ rows: DueLead[] }>()
 const emit = defineEmits<{ done: [id: number]; reschedule: [id: number, date: string] }>()
 
+const today = businessToday(useRuntimeConfig().public.businessTimezone)
+
 function stateBadge(date: string | null): { label: string; cls: string } {
-  const s = followUpState(date)
+  const s = followUpState(date, today)
   if (s === 'overdue') return { label: 'Overdue', cls: 'bg-red-50 text-red-700 border-red-200' }
   return { label: 'Today', cls: 'bg-accent-soft text-accent border-line' }
 }
