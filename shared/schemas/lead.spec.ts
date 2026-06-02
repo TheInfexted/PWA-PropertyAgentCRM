@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { leadInputSchema, bulkActionSchema } from './lead'
+import { leadInputSchema, leadPatchSchema, bulkActionSchema } from './lead'
 
 describe('leadInputSchema', () => {
   it('accepts a lead with only a name', () => {
@@ -17,6 +17,18 @@ describe('leadInputSchema', () => {
   it('rejects an invalid email when provided', () => {
     const r = leadInputSchema.safeParse({ name: 'X', email: 'not-an-email' })
     expect(r.success).toBe(false)
+  })
+})
+
+describe('budget ordering', () => {
+  it('rejects budgetMin > budgetMax on create', () => {
+    expect(leadInputSchema.safeParse({ name: 'A', budgetMin: 900000, budgetMax: 100 }).success).toBe(false)
+  })
+  it('accepts budgetMin <= budgetMax on create', () => {
+    expect(leadInputSchema.safeParse({ name: 'A', budgetMin: 100, budgetMax: 900000 }).success).toBe(true)
+  })
+  it('rejects budgetMin > budgetMax on patch', () => {
+    expect(leadPatchSchema.safeParse({ budgetMin: 5, budgetMax: 1 }).success).toBe(false)
   })
 })
 

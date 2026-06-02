@@ -18,14 +18,16 @@ export const leadFields = z.object({
   tags: z.array(z.string().trim().max(40)).max(20).optional(),
 })
 
+const budgetOrdered = (d: { budgetMin?: number | null; budgetMax?: number | null }) =>
+  d.budgetMin == null || d.budgetMax == null || d.budgetMin <= d.budgetMax
+
 // Create: requires at least a name or a phone.
-export const leadInputSchema = leadFields.refine(
-  (d) => Boolean(d.name?.length) || Boolean(d.phone?.length),
-  { message: 'A lead needs at least a name or a phone', path: ['name'] },
-)
+export const leadInputSchema = leadFields
+  .refine((d) => Boolean(d.name?.length) || Boolean(d.phone?.length), { message: 'A lead needs at least a name or a phone', path: ['name'] })
+  .refine(budgetOrdered, { message: 'Budget min must be ≤ budget max', path: ['budgetMax'] })
 
 // Update: every field optional, no name-or-phone requirement, no defaults.
-export const leadPatchSchema = leadFields.partial()
+export const leadPatchSchema = leadFields.partial().refine(budgetOrdered, { message: 'Budget min must be ≤ budget max', path: ['budgetMax'] })
 
 export type LeadInput = z.infer<typeof leadInputSchema>
 export type LeadPatch = z.infer<typeof leadPatchSchema>
