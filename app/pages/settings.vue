@@ -6,6 +6,7 @@ const PALETTE = ['#9e5733', '#b91c1c', '#a16207', '#15803d', '#2f9c63', '#1d4ed8
 
 const settings = useSettings()
 const wsSettings = useWorkspaceSettings()
+const toast = useToast()
 const { data: workspace, refresh: refreshWs } = await useAsyncData('ws', () => settings.getWorkspace())
 const { data: statuses, refresh: refreshStatuses } = await useAsyncData('settings-statuses', () => settings.listStatuses())
 
@@ -24,9 +25,16 @@ watch(workspace, (w) => {
 }, { immediate: true })
 
 async function persistSettings() {
-  await settings.updateSettings({ enabledOptionalFields: enabled.value, areas: areas.value })
-  await refreshWs()
-  await wsSettings.load(true)
+  try {
+    await settings.updateSettings({ enabledOptionalFields: enabled.value, areas: areas.value })
+    await refreshWs()
+    await wsSettings.load(true)
+    toast.success('Settings saved')
+  } catch (e: any) {
+    await refreshWs()
+    await wsSettings.load(true)
+    toast.error(e?.data?.message ?? 'Could not save settings')
+  }
 }
 async function toggleField(key: OptionalFieldKey) {
   enabled.value = enabled.value.includes(key) ? enabled.value.filter((k) => k !== key) : [...enabled.value, key]
@@ -47,8 +55,13 @@ const busy = ref(false)
 
 async function saveName() {
   if (!wsName.value.trim()) return
-  await settings.renameWorkspace(wsName.value.trim())
-  await refreshWs()
+  try {
+    await settings.renameWorkspace(wsName.value.trim())
+    await refreshWs()
+    toast.success('Workspace name saved')
+  } catch (e: any) {
+    toast.error(e?.data?.message ?? 'Could not save the workspace name')
+  }
 }
 async function addStatus() {
   if (!newLabel.value.trim() || busy.value) return
@@ -57,28 +70,48 @@ async function addStatus() {
     await settings.createStatus(newLabel.value.trim(), PALETTE[0]!)
     newLabel.value = ''
     await refreshStatuses()
+    toast.success('Status added')
+  } catch (e: any) {
+    toast.error(e?.data?.message ?? 'Could not add the status')
   } finally { busy.value = false }
 }
 async function rename(s: StatusRow, label: string) {
   if (!label.trim() || label === s.label) return
-  await settings.updateStatus(s.id, { label: label.trim() })
-  await refreshStatuses()
+  try {
+    await settings.updateStatus(s.id, { label: label.trim() })
+    await refreshStatuses()
+  } catch (e: any) {
+    toast.error(e?.data?.message ?? 'Could not rename the status')
+  }
 }
 async function recolor(s: StatusRow, color: string) {
-  await settings.updateStatus(s.id, { color })
-  await refreshStatuses()
+  try {
+    await settings.updateStatus(s.id, { color })
+    await refreshStatuses()
+  } catch (e: any) {
+    toast.error(e?.data?.message ?? 'Could not update the colour')
+  }
 }
 async function remove(s: StatusRow) {
-  await settings.deleteStatus(s.id)
-  await refreshStatuses()
+  try {
+    await settings.deleteStatus(s.id)
+    await refreshStatuses()
+    toast.success('Status removed')
+  } catch (e: any) {
+    toast.error(e?.data?.message ?? 'Could not remove the status')
+  }
 }
 async function move(index: number, dir: -1 | 1) {
   const list = [...(statuses.value ?? [])]
   const j = index + dir
   if (j < 0 || j >= list.length) return
   ;[list[index], list[j]] = [list[j]!, list[index]!]
-  await settings.reorderStatuses(list.map((s) => s.id))
-  await refreshStatuses()
+  try {
+    await settings.reorderStatuses(list.map((s) => s.id))
+    await refreshStatuses()
+  } catch (e: any) {
+    toast.error(e?.data?.message ?? 'Could not reorder statuses')
+  }
 }
 </script>
 
