@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNotNull, like, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, gte, inArray, isNotNull, like, or, sql } from 'drizzle-orm'
 import { leads, activities, statuses } from '~~/server/db/schema'
 import { leadVisibilityScope, type VisibilityContext } from '~~/shared/utils/visibility'
 import { normalizePhone } from '~~/shared/utils/phone'
@@ -178,18 +178,33 @@ export async function bulkCreateLeads(ctx: RequestContext, items: ImportLeadValu
     tags: [],
     createdBy: ctx.userId,
   }))
-  const [res] = await db.insert(leads).values(values)
-  // InnoDB assigns contiguous ids for a single multi-row insert (default autoinc lock mode).
-  const firstId = Number(res.insertId)
-  await db.insert(activities).values(
-    values.map((_, i) => ({
-      workspaceId: ctx.workspaceId,
-      leadId: firstId + i,
-      type: 'imported' as const,
-      actorUserId: ctx.userId,
-    })),
-  )
-  return values.length
+  return db.transaction(async (tx) => {
+    const [res] = await tx.insert(leads).values(values)
+    const firstId = Number(res.insertId)
+    // Re-read the ACTUAL ids of the rows we just inserted (don't assume contiguity).
+    const inserted = await tx
+      .select({ id: leads.id })
+      .from(leads)
+      .where(and(
+        eq(leads.workspaceId, ctx.workspaceId),
+        eq(leads.createdBy, ctx.userId),
+        eq(leads.source, 'import'),
+        gte(leads.id, firstId),
+      ))
+      .orderBy(asc(leads.id))
+      .limit(values.length)
+    if (inserted.length) {
+      await tx.insert(activities).values(
+        inserted.map((row) => ({
+          workspaceId: ctx.workspaceId,
+          leadId: row.id,
+          type: 'imported' as const,
+          actorUserId: ctx.userId,
+        })),
+      )
+    }
+    return values.length
+  })
 }
 
 /** Set status on visible leads in `ids`; logs one status_change activity each. */
