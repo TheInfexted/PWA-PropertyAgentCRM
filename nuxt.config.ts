@@ -30,6 +30,11 @@ export default defineNuxtConfig({
       ],
     },
   },
+  // PWA update strategy: 'autoUpdate' makes Workbox set skipWaiting + clientsClaim, so a new
+  // service worker activates and claims clients automatically — the post-deploy "stale shell"
+  // window is minimal and self-heals on the next navigation. 'prompt' is intentionally avoided:
+  // it would require users to click to update and could leave them more stale. No navigateFallback
+  // (this is an SSR app — navigations must reach the server when online).
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
