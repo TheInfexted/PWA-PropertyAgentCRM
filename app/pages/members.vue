@@ -1,6 +1,48 @@
 <script setup lang="ts">
 const team = useTeam()
 const toast = useToast()
+const { user } = useUserSession()
+const meId = computed(() => (user.value as { id?: number } | null)?.id ?? null)
+
+const resetFor = ref<number | null>(null)
+const newPw = ref('')
+
+async function changeRole(m: { userId: number; name: string; role: string }, role: 'owner' | 'agent') {
+  if (role === m.role) return
+  try {
+    await team.changeRole(m.userId, role)
+    await refreshMembers()
+    toast.success(`${m.name} is now ${role}`)
+  } catch (e: any) {
+    toast.error(e?.data?.message ?? 'Could not change role')
+    await refreshMembers()
+  }
+}
+function toggleReset(userId: number) {
+  resetFor.value = resetFor.value === userId ? null : userId
+  newPw.value = ''
+}
+async function saveReset(userId: number) {
+  if (newPw.value.length < 8) { toast.error('Password must be at least 8 characters'); return }
+  try {
+    await team.resetPassword(userId, newPw.value)
+    toast.success('Password updated — share it with the agent')
+    resetFor.value = null
+    newPw.value = ''
+  } catch (e: any) {
+    toast.error(e?.data?.message ?? 'Could not reset the password')
+  }
+}
+async function removeMember(m: { userId: number; name: string }) {
+  if (!confirm(`Remove ${m.name}? Their leads will be reassigned to you.`)) return
+  try {
+    await team.removeMember(m.userId)
+    await refreshMembers()
+    toast.success(`${m.name} removed`)
+  } catch (e: any) {
+    toast.error(e?.data?.message ?? 'Could not remove the member')
+  }
+}
 const { data: members, refresh: refreshMembers } = await useAsyncData('members', () => team.listMembers())
 const { data: invites, refresh: refreshInvites } = await useAsyncData('invites', () => team.listInvites())
 
@@ -75,14 +117,36 @@ async function revoke(id: number) {
     <section>
       <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-faint">Members</h2>
       <div class="overflow-hidden rounded-lg border border-line bg-surface shadow-card">
-        <div v-for="m in members ?? []" :key="m.userId" class="flex items-center justify-between border-b border-line px-4 py-3 last:border-b-0">
-          <div>
-            <p class="text-sm font-medium text-ink">{{ m.name }}</p>
-            <p class="text-xs text-muted">{{ m.email }}</p>
+        <div v-for="m in members ?? []" :key="m.userId" class="border-b border-line last:border-b-0">
+          <div class="flex items-center justify-between gap-3 px-4 py-3">
+            <div class="min-w-0">
+              <p class="truncate text-sm font-medium text-ink">{{ m.name }} <span v-if="m.userId === meId" class="text-xs font-normal text-faint">(you)</span></p>
+              <p class="truncate text-xs text-muted">{{ m.email }}</p>
+            </div>
+            <div v-if="m.userId === meId" class="shrink-0">
+              <span class="rounded-full border border-line px-2 py-0.5 text-xs font-medium capitalize text-muted">{{ m.role }}</span>
+            </div>
+            <div v-else class="flex shrink-0 items-center gap-2">
+              <select
+                class="rounded-md border border-line bg-surface px-2 py-1 text-xs capitalize"
+                :value="m.role"
+                @change="changeRole(m, ($event.target as HTMLSelectElement).value as 'owner' | 'agent')"
+              >
+                <option value="owner">owner</option>
+                <option value="agent">agent</option>
+              </select>
+              <button class="rounded-md border border-line px-2 py-1 text-xs font-medium text-muted hover:text-ink" @click="toggleReset(m.userId)">Reset password</button>
+              <button class="rounded-md px-2 py-1 text-xs font-medium text-muted hover:text-red-600" @click="removeMember(m)">Remove</button>
+            </div>
           </div>
-          <span class="rounded-full border border-line px-2 py-0.5 text-xs font-medium capitalize text-muted">{{ m.role }}</span>
+          <div v-if="resetFor === m.userId" class="flex items-center gap-2 border-t border-line bg-canvas/50 px-4 py-3">
+            <input v-model="newPw" type="text" placeholder="New password (min 8 chars)" class="flex-1 rounded-md border border-line bg-surface px-3 py-1.5 text-sm" @keyup.enter="saveReset(m.userId)">
+            <button class="rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-white hover:bg-accent-strong" @click="saveReset(m.userId)">Set password</button>
+            <button class="rounded-md px-2 py-1.5 text-sm text-faint hover:text-ink" @click="toggleReset(m.userId)">Cancel</button>
+          </div>
         </div>
       </div>
+      <p class="mt-2 text-xs text-faint">Changing a role takes effect on the member's next page load. Removing a member reassigns their leads to you.</p>
     </section>
   </div>
 </template>
