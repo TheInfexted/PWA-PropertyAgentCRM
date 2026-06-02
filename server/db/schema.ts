@@ -1,5 +1,5 @@
 import {
-  mysqlTable, int, varchar, text, boolean, timestamp,
+  mysqlTable, int, varchar, text, mediumtext, boolean, timestamp,
   mysqlEnum, json, uniqueIndex, index,
 } from 'drizzle-orm/mysql-core'
 import type { WorkspaceSettings } from '~~/shared/types'
@@ -9,6 +9,7 @@ export const users = mysqlTable('users', {
   email: varchar('email', { length: 255 }).notNull().unique(),
   passwordHash: varchar('password_hash', { length: 255 }).notNull(),
   name: varchar('name', { length: 120 }).notNull().default(''),
+  avatar: mediumtext('avatar'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 

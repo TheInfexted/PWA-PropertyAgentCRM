@@ -15,6 +15,13 @@
       "when": 1780307830843,
       "tag": "0001_fine_sleepwalker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1780375340094,
+      "tag": "0002_cultured_scarlet_spider",
+      "breakpoints": true
     }
   ]
 }
