@@ -4,11 +4,12 @@ import { ref } from 'vue'
 import { mount } from '@vue/test-utils'
 import CallButton from './CallButton.vue'
 
-// CallButton relies on Nuxt auto-imports (useLeads, ref) that aren't injected by the
-// plain vue test plugin, so stub them on globalThis before the component mounts.
+// CallButton relies on Nuxt auto-imports (useLeads, useToast, ref) that aren't injected
+// by the plain vue test plugin, so stub them on globalThis before the component mounts.
 beforeAll(() => {
   ;(globalThis as Record<string, unknown>).ref = ref
   ;(globalThis as Record<string, unknown>).useLeads = () => ({ logCall: vi.fn() })
+  ;(globalThis as Record<string, unknown>).useToast = () => ({ success: vi.fn(), error: vi.fn(), info: vi.fn() })
 })
 
 describe('CallButton', () => {

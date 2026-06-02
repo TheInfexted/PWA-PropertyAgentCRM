@@ -3,17 +3,27 @@ import type { StatusRow } from '~/composables/useStatuses'
 const props = defineProps<{ e164: string | null; leadId?: number; statuses?: StatusRow[] }>()
 const emit = defineEmits<{ logged: [] }>()
 const { logCall } = useLeads()
+const toast = useToast()
 const open = ref(false)
 
 async function onCall() {
-  if (props.e164) await navigator.clipboard?.writeText(props.e164)
+  if (props.e164) {
+    await navigator.clipboard?.writeText(props.e164)
+    toast.success('Number copied')
+  }
   if (props.leadId) open.value = true // the tel: href still fires; this just prompts the outcome
 }
 async function pick(statusId: number | null) {
   open.value = false
   if (!props.leadId) return
-  try { await logCall(props.leadId, statusId) }
-  finally { emit('logged') }
+  try {
+    await logCall(props.leadId, statusId)
+    toast.success('Call logged')
+  } catch {
+    toast.error('Could not log the call')
+  } finally {
+    emit('logged')
+  }
 }
 </script>
 

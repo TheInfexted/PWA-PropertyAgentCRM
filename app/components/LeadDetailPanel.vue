@@ -9,6 +9,7 @@ const emit = defineEmits<{ close: []; changed: [] }>()
 const { data: lead, refresh } = useFetch(`/api/leads/${props.leadId}`, { lazy: true })
 const { data: activities } = useFetch(`/api/leads/${props.leadId}/activities`, { lazy: true })
 const { update } = useLeads()
+const toast = useToast()
 
 const { session } = useUserSession()
 const isOwner = computed(() => (session.value as { role?: string } | null)?.role === 'owner')
@@ -22,9 +23,14 @@ function optDisplay(key: OptionalFieldKey) {
 }
 
 async function assign(userId: number) {
-  await update(props.leadId, { assignedTo: userId })
-  await refresh()
-  emit('changed')
+  try {
+    await update(props.leadId, { assignedTo: userId })
+    await refresh()
+    emit('changed')
+    toast.success('Lead reassigned')
+  } catch {
+    toast.error('Could not reassign the lead')
+  }
 }
 
 const followUp = ref('')
@@ -39,6 +45,9 @@ async function saveFollowUp(value: string | null) {
     await update(props.leadId, { nextFollowUpAt: value })
     await refresh()
     emit('changed')
+    toast.success(value ? 'Follow-up updated' : 'Follow-up cleared')
+  } catch {
+    toast.error('Could not update the follow-up')
   } finally {
     saving.value = false
   }

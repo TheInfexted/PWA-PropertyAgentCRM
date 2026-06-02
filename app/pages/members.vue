@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const team = useTeam()
+const toast = useToast()
 const { data: members, refresh: refreshMembers } = await useAsyncData('members', () => team.listMembers())
 const { data: invites, refresh: refreshInvites } = await useAsyncData('invites', () => team.listInvites())
 
@@ -17,18 +18,27 @@ async function invite() {
     lastLink.value = team.linkFor(res.token)
     email.value = ''
     await refreshInvites()
+    toast.success('Invite link created')
   } catch (e: any) {
     error.value = e?.data?.message ?? 'Could not create the invite'
+    toast.error(error.value)
   } finally {
     busy.value = false
   }
 }
 async function copyLink() {
-  if (lastLink.value) await navigator.clipboard?.writeText(lastLink.value)
+  if (!lastLink.value) return
+  await navigator.clipboard?.writeText(lastLink.value)
+  toast.success('Link copied')
 }
 async function revoke(id: number) {
-  await team.revokeInvite(id)
-  await refreshInvites()
+  try {
+    await team.revokeInvite(id)
+    await refreshInvites()
+    toast.success('Invite revoked')
+  } catch {
+    toast.error('Could not revoke the invite')
+  }
 }
 </script>
 
