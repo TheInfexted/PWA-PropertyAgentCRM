@@ -121,12 +121,23 @@ export function normalizeDraft(d: DraftCells): NormalizedDraft {
   }
 }
 
-/** Mutates rows in place: second+ occurrence of a phone within the batch is 'in-batch'. */
-export function markInBatchDupes(rows: Array<Pick<AnnotatedRow, 'phoneE164' | 'duplicate'>>): void {
+/** Dedupe key: valid e164, else raw digits, else lowercased name, else null (un-dedupable). */
+export function dupeKey(r: { phoneE164: string | null; phoneRaw: string; name: string }): string | null {
+  if (r.phoneE164) return `e:${r.phoneE164}`
+  const digits = (r.phoneRaw || '').replace(/[^\d]/g, '')
+  if (digits) return `d:${digits}`
+  const name = r.name.trim().toLowerCase()
+  if (name) return `n:${name}`
+  return null
+}
+
+/** Mutates rows in place: second+ occurrence of a dedupe key within the batch is 'in-batch'. */
+export function markInBatchDupes(rows: Array<Pick<AnnotatedRow, 'phoneE164' | 'phoneRaw' | 'name' | 'duplicate'>>): void {
   const seen = new Set<string>()
   for (const r of rows) {
-    if (!r.phoneE164) continue
-    if (seen.has(r.phoneE164)) r.duplicate = 'in-batch'
-    else seen.add(r.phoneE164)
+    const key = dupeKey(r)
+    if (!key) continue
+    if (seen.has(key)) r.duplicate = 'in-batch'
+    else seen.add(key)
   }
 }

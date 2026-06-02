@@ -31,10 +31,10 @@ describe('normalizeDraft', () => {
 describe('markInBatchDupes', () => {
   it('keeps the first occurrence, flags later same-phone rows', () => {
     const rows = [
-      { phoneE164: '+60128975215', duplicate: null },
-      { phoneE164: '+60111111111', duplicate: null },
-      { phoneE164: '+60128975215', duplicate: null },
-    ] as Pick<AnnotatedRow, 'phoneE164' | 'duplicate'>[]
+      { phoneE164: '+60128975215', phoneRaw: '60128975215', name: 'A', duplicate: null },
+      { phoneE164: '+60111111111', phoneRaw: '60111111111', name: 'B', duplicate: null },
+      { phoneE164: '+60128975215', phoneRaw: '60128975215', name: 'C', duplicate: null },
+    ] as Pick<AnnotatedRow, 'phoneE164' | 'phoneRaw' | 'name' | 'duplicate'>[]
     markInBatchDupes(rows)
     expect(rows.map((r) => r.duplicate)).toEqual([null, null, 'in-batch'])
   })
