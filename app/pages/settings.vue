@@ -5,6 +5,7 @@ import { OPTIONAL_FIELD_KEYS, OPTIONAL_FIELD_LABELS, type OptionalFieldKey, type
 const PALETTE = ['#9e5733', '#b91c1c', '#a16207', '#15803d', '#2f9c63', '#1d4ed8', '#6b7280', '#7c3aed']
 
 const settings = useSettings()
+const wsSettings = useWorkspaceSettings()
 const { data: workspace, refresh: refreshWs } = await useAsyncData('ws', () => settings.getWorkspace())
 const { data: statuses, refresh: refreshStatuses } = await useAsyncData('settings-statuses', () => settings.listStatuses())
 
@@ -25,6 +26,7 @@ watch(workspace, (w) => {
 async function persistSettings() {
   await settings.updateSettings({ enabledOptionalFields: enabled.value, areas: areas.value })
   await refreshWs()
+  await wsSettings.load(true)
 }
 async function toggleField(key: OptionalFieldKey) {
   enabled.value = enabled.value.includes(key) ? enabled.value.filter((k) => k !== key) : [...enabled.value, key]
