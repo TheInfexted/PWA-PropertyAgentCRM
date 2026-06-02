@@ -1,5 +1,5 @@
 import {
-  mysqlTable, int, varchar, text, mediumtext, boolean, timestamp,
+  mysqlTable, int, varchar, text, mediumtext, boolean, timestamp, date,
   mysqlEnum, json, uniqueIndex, index,
 } from 'drizzle-orm/mysql-core'
 import type { WorkspaceSettings } from '~~/shared/types'
@@ -54,7 +54,7 @@ export const leads = mysqlTable('leads', {
   propertyType: varchar('property_type', { length: 80 }),
   budgetMin: int('budget_min'),
   budgetMax: int('budget_max'),
-  nextFollowUpAt: timestamp('next_follow_up_at'),
+  nextFollowUpAt: date('next_follow_up_at', { mode: 'string' }),
   tags: json('tags').$type<string[]>(),
   createdBy: int('created_by'),
   createdAt: timestamp('created_at').defaultNow().notNull(),

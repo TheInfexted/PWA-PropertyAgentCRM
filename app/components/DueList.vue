@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { followUpState, isoToDateInput } from '~~/shared/utils/followup'
+import { followUpState, storedToDateInput } from '~~/shared/utils/followup'
 import type { DueLead } from '~/composables/useFollowUps'
 
 defineProps<{ rows: DueLead[] }>()
 const emit = defineEmits<{ done: [id: number]; reschedule: [id: number, date: string] }>()
 
-function stateBadge(iso: string | null): { label: string; cls: string } {
-  const s = followUpState(iso)
+function stateBadge(date: string | null): { label: string; cls: string } {
+  const s = followUpState(date)
   if (s === 'overdue') return { label: 'Overdue', cls: 'bg-red-50 text-red-700 border-red-200' }
   return { label: 'Today', cls: 'bg-accent-soft text-accent border-line' }
 }
@@ -40,7 +40,7 @@ function stateBadge(iso: string | null): { label: string; cls: string } {
               <WhatsAppButton :e164="row.phoneE164" />
               <input
                 type="date"
-                :value="isoToDateInput(row.nextFollowUpAt)"
+                :value="storedToDateInput(row.nextFollowUpAt)"
                 class="rounded-md border border-line bg-surface px-2 py-1 text-xs text-muted"
                 @change="emit('reschedule', row.id, ($event.target as HTMLInputElement).value)"
               >

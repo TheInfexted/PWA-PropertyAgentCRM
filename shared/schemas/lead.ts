@@ -14,7 +14,7 @@ export const leadFields = z.object({
   propertyType: z.string().trim().max(80).optional(),
   budgetMin: z.number().int().nonnegative().nullable().optional(),
   budgetMax: z.number().int().nonnegative().nullable().optional(),
-  nextFollowUpAt: z.string().datetime().nullable().optional(),
+  nextFollowUpAt: z.string().regex(/^\d{4}-\d{2}-\d{2}/, 'Expected a YYYY-MM-DD date').nullable().optional(),
   tags: z.array(z.string().trim().max(40)).max(20).optional(),
 })
 

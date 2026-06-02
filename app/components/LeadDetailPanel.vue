@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isoToDateInput, dateInputToIso } from '~~/shared/utils/followup'
+import { storedToDateInput, dateInputToStored } from '~~/shared/utils/followup'
 import { OPTIONAL_FIELD_LABELS, type OptionalFieldKey } from '~~/shared/types'
 import { optionalFieldDisplay, type OptionalFieldSource } from '~/utils/optionalFields'
 
@@ -35,7 +35,7 @@ async function assign(userId: number) {
 
 const followUp = ref('')
 watch(lead, (l) => {
-  followUp.value = isoToDateInput((l as { nextFollowUpAt?: string | null })?.nextFollowUpAt ?? null)
+  followUp.value = storedToDateInput((l as { nextFollowUpAt?: string | null })?.nextFollowUpAt ?? null)
 })
 
 const saving = ref(false)
@@ -82,7 +82,7 @@ async function saveFollowUp(value: string | null) {
           type="date"
           class="flex-1 rounded-md border border-line bg-surface px-3 py-1.5 text-sm"
           :disabled="saving"
-          @change="saveFollowUp(dateInputToIso(followUp))"
+          @change="saveFollowUp(dateInputToStored(followUp))"
         >
         <button
           v-if="followUp"

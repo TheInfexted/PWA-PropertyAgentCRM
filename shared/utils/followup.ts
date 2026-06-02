@@ -1,28 +1,29 @@
 export type FollowUpState = 'overdue' | 'today' | 'upcoming'
 
-/** Compare a follow-up ISO datetime to `now` by UTC calendar day. null if no/invalid date. */
-export function followUpState(iso: string | null, now: Date = new Date()): FollowUpState | null {
-  if (!iso) return null
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return null
-  const day = (x: Date) => Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate())
-  const a = day(d)
-  const b = day(now)
-  if (a < b) return 'overdue'
-  if (a === b) return 'today'
+/** Today's calendar date as 'YYYY-MM-DD' in the LOCAL timezone. */
+export function todayStr(now: Date = new Date()): string {
+  const y = now.getFullYear()
+  const m = String(now.getMonth() + 1).padStart(2, '0')
+  const d = String(now.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+/** Compare a 'YYYY-MM-DD' follow-up date to today (local). null if no date. */
+export function followUpState(date: string | null, now: Date = new Date()): FollowUpState | null {
+  if (!date) return null
+  const today = todayStr(now)
+  if (date < today) return 'overdue'
+  if (date === today) return 'today'
   return 'upcoming'
 }
 
-/** 'YYYY-MM-DD' -> ISO datetime at UTC midnight. '' -> null. */
-export function dateInputToIso(date: string): string | null {
-  if (!date) return null
-  return `${date}T00:00:00.000Z`
+/** '<input type=date>' value -> stored value. '' -> null. */
+export function dateInputToStored(date: string): string | null {
+  return date || null
 }
 
-/** ISO datetime -> 'YYYY-MM-DD' for an <input type="date">. null/invalid -> ''. */
-export function isoToDateInput(iso: string | null): string {
-  if (!iso) return ''
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  return d.toISOString().slice(0, 10)
+/** Stored value -> '<input type=date>' value. Tolerates legacy ISO; null/'' -> ''. */
+export function storedToDateInput(value: string | null): string {
+  if (!value) return ''
+  return value.length > 10 ? value.slice(0, 10) : value
 }

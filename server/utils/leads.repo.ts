@@ -92,7 +92,7 @@ export async function createLead(ctx: RequestContext, data: LeadInput) {
     propertyType: data.propertyType ?? null,
     budgetMin: data.budgetMin ?? null,
     budgetMax: data.budgetMax ?? null,
-    nextFollowUpAt: data.nextFollowUpAt ? new Date(data.nextFollowUpAt) : null,
+    nextFollowUpAt: data.nextFollowUpAt ? data.nextFollowUpAt.slice(0, 10) : null,
     tags: data.tags ?? [],
     source: 'manual',
     createdBy: ctx.userId,
@@ -111,7 +111,7 @@ export async function updateLead(ctx: RequestContext, id: number, data: Partial<
   if (data.remarks !== undefined) patch.remarks = data.remarks
   if (data.statusId !== undefined) patch.statusId = data.statusId
   if (data.assignedTo !== undefined && ctx.role === 'owner') patch.assignedTo = data.assignedTo
-  if (data.nextFollowUpAt !== undefined) patch.nextFollowUpAt = data.nextFollowUpAt ? new Date(data.nextFollowUpAt) : null
+  if (data.nextFollowUpAt !== undefined) patch.nextFollowUpAt = data.nextFollowUpAt ? data.nextFollowUpAt.slice(0, 10) : null
   if (data.email !== undefined) patch.email = data.email || null
   if (data.intent !== undefined) patch.intent = data.intent ?? null
   if (data.propertyType !== undefined) patch.propertyType = data.propertyType ?? null
@@ -145,7 +145,7 @@ export async function listDueFollowUps(ctx: RequestContext) {
   const where = and(
     whereFor(ctx, {}),
     isNotNull(leads.nextFollowUpAt),
-    sql`date(${leads.nextFollowUpAt}) <= curdate()`,
+    sql`${leads.nextFollowUpAt} <= curdate()`,
   )
   return db.select().from(leads).where(where).orderBy(asc(leads.nextFollowUpAt)).limit(200)
 }

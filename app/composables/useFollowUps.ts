@@ -1,4 +1,4 @@
-import { dateInputToIso } from '~~/shared/utils/followup'
+import { dateInputToStored } from '~~/shared/utils/followup'
 
 export interface DueLead {
   id: number
@@ -17,7 +17,7 @@ export function useFollowUps() {
     return request<DueLead[]>('/api/leads/due')
   }
   async function reschedule(id: number, date: string) {
-    return update(id, { nextFollowUpAt: dateInputToIso(date) })
+    return update(id, { nextFollowUpAt: dateInputToStored(date) })
   }
   async function markDone(id: number) {
     return update(id, { nextFollowUpAt: null })

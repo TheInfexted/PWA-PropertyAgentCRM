@@ -1,0 +1,1 @@
+ALTER TABLE `leads` MODIFY COLUMN `next_follow_up_at` date;
