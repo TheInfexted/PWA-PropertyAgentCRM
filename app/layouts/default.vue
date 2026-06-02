@@ -2,6 +2,8 @@
 const route = useRoute()
 const { user, session } = useUserSession()
 const menuOpen = ref(false)
+const navOpen = ref(false)
+watch(() => route.path, () => { navOpen.value = false })
 const isOwner = computed(() => (session.value as { role?: string } | null)?.role === 'owner')
 
 const { account, load: loadAccount } = useAccount()
@@ -24,8 +26,12 @@ async function logout() {
 
 <template>
   <div class="flex h-dvh overflow-hidden bg-canvas text-ink">
+    <div v-if="navOpen" class="fixed inset-0 z-30 bg-ink/40 md:hidden" @click="navOpen = false" />
     <!-- Sidebar -->
-    <aside class="flex h-dvh w-60 shrink-0 flex-col border-r border-line bg-surface p-4">
+    <aside
+      class="fixed inset-y-0 left-0 z-40 flex h-dvh w-60 shrink-0 flex-col border-r border-line bg-surface p-4 transition-transform md:static md:translate-x-0"
+      :class="navOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
+    >
       <!-- Brand mark -->
       <div class="mb-7 flex items-center gap-2.5 px-1">
         <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent">
@@ -139,9 +145,12 @@ async function logout() {
 
     <!-- Main area -->
     <div class="flex min-w-0 flex-1 flex-col">
-      <header class="flex h-14 shrink-0 items-center justify-between border-b border-line bg-surface/80 px-6 backdrop-blur">
+      <header class="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-surface/80 px-4 backdrop-blur md:px-6">
+        <button class="-ml-1 rounded-md p-1.5 text-muted hover:bg-canvas hover:text-ink md:hidden" aria-label="Open menu" @click="navOpen = true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
         <h1 class="text-base font-semibold tracking-tight text-ink">{{ pageTitle }}</h1>
-        <div id="topbar-actions" class="flex items-center gap-2" />
+        <div id="topbar-actions" class="ml-auto flex items-center gap-2" />
       </header>
       <main class="flex-1 overflow-y-auto p-8">
         <div class="mx-auto max-w-[1400px]">
