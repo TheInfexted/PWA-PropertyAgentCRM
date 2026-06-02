@@ -1,5 +1,5 @@
 import { and, asc, desc, eq, inArray, isNotNull, like, or, sql } from 'drizzle-orm'
-import { leads, activities } from '~~/server/db/schema'
+import { leads, activities, statuses } from '~~/server/db/schema'
 import { leadVisibilityScope, type VisibilityContext } from '~~/shared/utils/visibility'
 import { normalizePhone } from '~~/shared/utils/phone'
 import type { LeadInput } from '~~/shared/schemas/lead'
@@ -77,8 +77,18 @@ function applyPhone<T extends { phone?: string }>(data: T) {
   return { phoneRaw: p.raw || null, phoneE164: p.e164, phoneValid: p.valid }
 }
 
+/** Throws 400 if statusId is set but does not belong to the caller's workspace. */
+async function assertStatusInWorkspace(ctx: RequestContext, statusId: number | null | undefined) {
+  if (statusId == null) return
+  const db = useDb()
+  const [s] = await db.select({ id: statuses.id }).from(statuses)
+    .where(and(eq(statuses.workspaceId, ctx.workspaceId), eq(statuses.id, statusId))).limit(1)
+  if (!s) throw createError({ statusCode: 400, message: 'Invalid status for this workspace' })
+}
+
 export async function createLead(ctx: RequestContext, data: LeadInput) {
   const db = useDb()
+  await assertStatusInWorkspace(ctx, data.statusId)
   const phone = applyPhone(data)
   const [res] = await db.insert(leads).values({
     workspaceId: ctx.workspaceId,
@@ -105,6 +115,7 @@ export async function updateLead(ctx: RequestContext, id: number, data: Partial<
   const db = useDb()
   const existing = await getLead(ctx, id)
   if (!existing) return null
+  if (data.statusId !== undefined) await assertStatusInWorkspace(ctx, data.statusId)
   const patch: Partial<typeof leads.$inferInsert> = {}
   if (data.name !== undefined) patch.name = data.name
   if (data.area !== undefined) patch.area = data.area
@@ -119,13 +130,13 @@ export async function updateLead(ctx: RequestContext, id: number, data: Partial<
   if (data.budgetMax !== undefined) patch.budgetMax = data.budgetMax ?? null
   if (data.tags !== undefined) patch.tags = data.tags
   if (data.phone !== undefined) Object.assign(patch, applyPhone(data as { phone?: string }))
-  await db.update(leads).set(patch).where(and(eq(leads.workspaceId, ctx.workspaceId), eq(leads.id, id)))
+  await db.update(leads).set(patch).where(and(whereFor(ctx, {}), eq(leads.id, id)))
   return getLead(ctx, id)
 }
 
 export async function deleteLead(ctx: RequestContext, id: number) {
   const db = useDb()
-  await db.delete(leads).where(and(eq(leads.workspaceId, ctx.workspaceId), eq(leads.id, id)))
+  await db.delete(leads).where(and(whereFor(ctx, {}), eq(leads.id, id)))
 }
 
 export interface ImportLeadValues {
@@ -185,6 +196,7 @@ export async function bulkCreateLeads(ctx: RequestContext, items: ImportLeadValu
 export async function bulkSetStatus(ctx: RequestContext, ids: number[], statusId: number | null): Promise<number> {
   if (!ids.length) return 0
   const db = useDb()
+  await assertStatusInWorkspace(ctx, statusId)
   const visible = await db.select({ id: leads.id }).from(leads).where(and(whereFor(ctx, {}), inArray(leads.id, ids)))
   const vids = visible.map((r) => r.id)
   if (!vids.length) return 0
