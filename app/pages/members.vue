@@ -118,7 +118,7 @@ async function revoke(id: number) {
       <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-faint">Members</h2>
       <div class="overflow-hidden rounded-lg border border-line bg-surface shadow-card">
         <div v-for="m in members ?? []" :key="m.userId" class="border-b border-line last:border-b-0">
-          <div class="flex items-center justify-between gap-3 px-4 py-3">
+          <div class="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="min-w-0">
               <p class="truncate text-sm font-medium text-ink">{{ m.name }} <span v-if="m.userId === meId" class="text-xs font-normal text-faint">(you)</span></p>
               <p class="truncate text-xs text-muted">{{ m.email }}</p>
@@ -126,7 +126,7 @@ async function revoke(id: number) {
             <div v-if="m.userId === meId" class="shrink-0">
               <span class="rounded-full border border-line px-2 py-0.5 text-xs font-medium capitalize text-muted">{{ m.role }}</span>
             </div>
-            <div v-else class="flex shrink-0 items-center gap-2">
+            <div v-else class="flex flex-wrap items-center gap-2">
               <select
                 class="rounded-md border border-line bg-surface px-2 py-1 text-xs capitalize"
                 :value="m.role"

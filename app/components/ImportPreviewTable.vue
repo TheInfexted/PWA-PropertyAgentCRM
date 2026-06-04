@@ -11,8 +11,8 @@ function rowState(r: AnnotatedRow): { label: string; cls: string } {
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-lg border border-line bg-surface shadow-card">
-    <table class="w-full text-sm">
+  <div class="overflow-x-auto rounded-lg border border-line bg-surface shadow-card">
+    <table class="w-full min-w-[560px] text-sm">
       <thead class="bg-canvas/60">
         <tr>
           <th class="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-faint border-b border-line">Name</th>

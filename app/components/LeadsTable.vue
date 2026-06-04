@@ -39,8 +39,8 @@ const th = 'px-4 py-3 text-left text-[11px] font-medium uppercase tracking-wider
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-lg border border-line bg-surface shadow-card">
-    <table class="w-full text-sm">
+  <div class="overflow-x-auto rounded-lg border border-line bg-surface shadow-card">
+    <table class="w-full min-w-[760px] text-sm">
       <thead class="bg-canvas/60">
         <tr>
           <th class="w-10 border-b border-line px-4 py-3">

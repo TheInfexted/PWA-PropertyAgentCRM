@@ -56,7 +56,7 @@ async function saveFollowUp(value: string | null) {
 
 <template>
   <div class="fixed inset-0 z-20 bg-ink/20" @click="emit('close')" />
-  <div class="fixed inset-y-0 right-0 z-30 w-96 overflow-y-auto border-l border-line bg-surface p-6 shadow-pop">
+  <div class="fixed inset-y-0 right-0 z-30 w-full overflow-y-auto border-l border-line bg-surface p-6 shadow-pop sm:w-96">
     <div class="mb-4 flex items-center justify-between">
       <h2 class="text-lg font-semibold text-ink">{{ lead?.name || 'Lead' }}</h2>
       <button class="text-faint hover:text-ink" @click="emit('close')">
